@@ -3,6 +3,14 @@
 import yaml
 import glob
 
+
+def generate_url(accession):
+    if accession.startswith("PP_"):
+        return f"https://pathoplexus.org/seq/{accession}"
+    else:
+        return f"https://www.ncbi.nlm.nih.gov/nuccore/{accession}"
+
+
 def generate_lineage_md(clade, lineage):
     lines = []
     lines.append(f"## {clade['name']}")
@@ -12,7 +20,7 @@ def generate_lineage_md(clade, lineage):
     if "clade" in clade and clade['clade'] != "none":
         lines.append(f" * clade: {clade['clade']}")
 
-    ref_seqs = [f"[{x}](https://www.ncbi.nlm.nih.gov/nuccore/{x})" for x in clade['representatives']]
+    ref_seqs = [f"[{x}]({generate_url(x)})" for x in clade['representatives']]
     if len(ref_seqs)==1:
         lines.append(f" * representative sequence: {ref_seqs[0]}")
     elif len(ref_seqs)>1:
@@ -45,6 +53,11 @@ if __name__=="__main__":
 
         for clade in clades:
             outfile.write(generate_lineage_md(clade, args.lineage) + '\n')
+
+    # representative strains
+    with open('representatives.txt', 'w') as outfile:
+        for clade in clades:
+            outfile.write("\n".join(clade["representatives"]) + ("\n" if len(clade["representatives"]) else ""))
 
 ## usage:
 ## python ../helper-scripts/generate_markdown_summary.py --lineage b --input-dir lineages
